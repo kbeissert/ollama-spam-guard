@@ -23,6 +23,13 @@ cd ollama-spam-guard
 ```
 
 ### 1. Dependencies installieren
+
+**Mit Makefile:**
+```bash
+make install
+```
+
+**Oder manuell:**
 ```bash
 pip install -r requirements.txt
 ```
@@ -62,13 +69,25 @@ ollama pull qwen2.5:7b            # Mittlere Systeme (8-16GB RAM)
 💡 **Modellauswahl**: Siehe [Modellübersicht in SETUP.md](docs/SETUP.md#modellauswahl) für eine vollständige Übersicht aller verfügbaren Modelle mit Empfehlungen basierend auf deiner Hardware.
 
 ### 5. Verbindung testen & Filter starten
+
+**Mit Makefile (empfohlen):**
 ```bash
-# ✅ EMPFOHLEN: Verbindungstest zuerst ausführen
+make test    # Verbindungstest (Ollama, LLM, IMAP)
+make run     # Spam-Filter starten
+make folders # IMAP-Ordnerstruktur anzeigen
+make help    # Alle verfügbaren Befehle
+```
+
+**Oder manuell:**
+```bash
+# Verbindungstest
 python test_connection.py
-# Prüft: Ollama, LLM-Modell, IMAP-Logins, Spam-Ordner
 
 # Spam-Filter starten
 python src/spam_filter.py
+
+# Ordnerstruktur prüfen
+python list_folders.py
 ```
 
 ## Konfiguration

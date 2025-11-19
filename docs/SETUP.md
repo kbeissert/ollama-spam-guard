@@ -464,17 +464,48 @@ Nach erfolgreichem Setup:
 Gehe diese Schritte durch, um sicherzustellen, dass alles richtig konfiguriert ist:
 
 - [ ] **Python 3.8+** installiert (`python --version`)
-- [ ] **Dependencies** installiert (`pip install -r requirements.txt`)
+- [ ] **Dependencies** installiert (`make install` oder `pip install -r requirements.txt`)
 - [ ] **Ollama** läuft (`ollama serve` oder als Dienst)
 - [ ] **LLM-Modell** heruntergeladen (`ollama pull qwen2.5:14b-instruct`)
 - [ ] **`.env`** erstellt und angepasst (aus `.env.example`)
 - [ ] **`accounts.yaml`** erstellt und angepasst (aus `accounts.yaml.example`)
 - [ ] Mindestens **ein Account** mit `enabled: true`
-- [ ] **Verbindungstest erfolgreich** (`python test_connection.py` → alle ✅)
-- [ ] **Erster Testlauf erfolgreich** (`python src/spam_filter.py` mit `LIMIT=5`)
+- [ ] **Verbindungstest erfolgreich** (`make test` → alle ✅)
+- [ ] **Erster Testlauf erfolgreich** (`make run` mit `LIMIT=5`)
 - [ ] **Log-Datei** wird erstellt und beschrieben (`~/spam_filter.log`)
 
 ✅ **Alles erledigt? Dann bist du bereit für den produktiven Einsatz!**
+
+---
+
+## Praktische Shortcuts (Makefile)
+
+Das Projekt enthält ein Makefile mit praktischen Kurzbefehlen:
+
+```bash
+make help       # Alle verfügbaren Befehle anzeigen
+make install    # Dependencies installieren
+make test       # Verbindungstest (Ollama, LLM, IMAP)
+make run        # Spam-Filter starten
+make folders    # IMAP-Ordnerstruktur anzeigen
+make clean      # Cache-Dateien löschen
+make status     # Projekt-Status prüfen
+```
+
+**Empfohlener Workflow:**
+```bash
+# 1. Setup
+make install
+
+# 2. Testen
+make test
+
+# 3. Ordnerstruktur prüfen (falls Spam-Ordner unklar)
+make folders
+
+# 4. Spam-Filter starten
+make run
+```
 
 ---
 
