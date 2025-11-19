@@ -41,16 +41,38 @@ accounts:
     enabled: false
 
   # ----------------------------------------
-  # Microsoft (Outlook / Hotmail / Live)
+  # GMX
   # ----------------------------------------
-  # ⚠️  WICHTIG: Bei aktivierter 2FA App-Passwort verwenden!
-  #     Erstellen: https://account.microsoft.com/security
-  - name: "Microsoft"
-    user: "deine@outlook.com"  # oder @hotmail.com, @live.com
-    password: "app-passwort-oder-normales-passwort"
-    server: "outlook.office365.com"
+  - name: "GMX"
+    user: "deine@gmx.de"
+    password: "passwort"
+    server: "imap.gmx.net"
     port: 993
-    spam_folder: "Junk"  # Microsoft nutzt "Junk" statt "Spam"
+    spam_folder: "Spamverdacht"  # GMX-spezifischer Name
+    enabled: false
+
+  # ----------------------------------------
+  # Web.de
+  # ----------------------------------------
+  - name: "Web.de"
+    user: "deine@web.de"
+    password: "passwort"
+    server: "imap.web.de"
+    port: 993
+    spam_folder: "Spamverdacht"  # Wie GMX
+    enabled: false
+
+  # ----------------------------------------
+  # Yahoo Mail
+  # ----------------------------------------
+  # ⚠️  Bei aktivierter 2FA: App-Passwort erforderlich!
+  #     Erstellen: https://login.yahoo.com/account/security
+  - name: "Yahoo"
+    user: "deine@yahoo.com"
+    password: "app-passwort-oder-normales-passwort"
+    server: "imap.mail.yahoo.com"
+    port: 993
+    spam_folder: "Bulk Mail"  # Yahoo nutzt "Bulk Mail"
     enabled: false
 
   # ----------------------------------------
@@ -67,6 +89,27 @@ accounts:
     port: 993
     spam_folder: "Junk"
     enabled: false
+
+
+# ============================================
+# ⛔ NICHT UNTERSTÜTZTE PROVIDER
+# ============================================
+# 
+# Microsoft (Outlook.com, Hotmail, Live.com):
+# ------------------------------------------
+# Microsoft hat die Unterstützung für IMAP-Zugriffe mit
+# Username/Passwort vollständig eingestellt.
+# 
+# - Basic Auth deaktiviert (seit Oktober 2022)
+# - App-Passwörter nicht mehr verfügbar für E-Mail
+# - Nur noch OAuth2 mit App-Registrierung möglich
+# 
+# ℹ️  Dieses Tool unterstützt nur IMAP mit Username/Passwort
+#    und bietet daher KEINE Microsoft-Account-Unterstützung.
+# 
+# Alternative: Nutze Gmail oder einen anderen Provider mit
+#              IMAP-Unterstützung für Spam-Filterung.
+
 
 
 
@@ -110,17 +153,6 @@ accounts:
   #   enabled: false
 
   # ----------------------------------------
-  # GMX
-  # ----------------------------------------
-  # - name: "GMX"
-  #   user: "deine@gmx.de"
-  #   password: "passwort"
-  #   server: "imap.gmx.net"
-  #   port: 993
-  #   spam_folder: "Spamverdacht"  # GMX-spezifischer Name
-  #   enabled: false
-
-  # ----------------------------------------
   # HostEurope
   # ----------------------------------------
   # - name: "HostEurope"
@@ -140,30 +172,6 @@ accounts:
   #   server: "imap.strato.de"
   #   port: 993
   #   spam_folder: "Spam"
-  #   enabled: false
-
-  # ----------------------------------------
-  # Web.de
-  # ----------------------------------------
-  # - name: "Web.de"
-  #   user: "deine@web.de"
-  #   password: "passwort"
-  #   server: "imap.web.de"
-  #   port: 993
-  #   spam_folder: "Spamverdacht"  # Wie GMX
-  #   enabled: false
-
-  # ----------------------------------------
-  # Yahoo Mail
-  # ----------------------------------------
-  # ⚠️  Bei aktivierter 2FA: App-Passwort erforderlich!
-  #     Erstellen: https://login.yahoo.com/account/security
-  # - name: "Yahoo"
-  #   user: "deine@yahoo.com"
-  #   password: "app-passwort-oder-normales-passwort"
-  #   server: "imap.mail.yahoo.com"
-  #   port: 993
-  #   spam_folder: "Bulk Mail"  # Yahoo nutzt "Bulk Mail"
   #   enabled: false
 
   # ----------------------------------------
