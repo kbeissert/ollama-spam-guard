@@ -1,0 +1,92 @@
+# ============================================
+# E-Mail Accounts Konfiguration (BEISPIEL)
+# ============================================
+# Kopiere diese Datei zu accounts.yaml und passe die Daten an!
+
+accounts:
+  # Account 1: All-Inkl / KAS Server
+  - name: "All-Inkl"
+    user: "dein-username"
+    password: "dein-passwort"
+    server: "w0xxxxx.kasserver.com"
+    port: 993
+    spam_folder: "Spam"
+    enabled: true
+
+  # Account 2: GMX
+  - name: "GMX"
+    user: "deine@email.de"
+    password: "passwort"
+    server: "imap.gmx.net"
+    port: 993
+    spam_folder: "Spamverdacht"
+    enabled: false
+
+  # Account 3: Berlin.de
+  - name: "Berlin.de"
+    user: "deine@berlin.de"
+    password: "passwort"
+    server: "imap.berlin.de"
+    port: 993
+    spam_folder: "Spam"
+    enabled: false
+
+  # Account 4: Hotmail/Outlook
+  - name: "Hotmail"
+    user: "deine@hotmail.com"
+    password: "passwort"
+    server: "outlook.office365.com"
+    port: 993
+    spam_folder: "Junk"
+    enabled: false
+
+  # Account 5: Gmail
+  # WICHTIG: Gmail benötigt ein App-Passwort!
+  # Erstelle eines unter: https://myaccount.google.com/apppasswords
+  - name: "Gmail"
+    user: "deine@gmail.com"
+    password: "app-passwort-hier"
+    server: "imap.gmail.com"
+    port: 993
+    spam_folder: "[Gmail]/Spam"
+    enabled: false
+
+  # Account 6: HostEurope
+  - name: "HostEurope"
+    user: "deine@domain.de"
+    password: "passwort"
+    server: "imap.hosteurope.de"
+    port: 993
+    spam_folder: "Spam"
+    enabled: false
+
+# ============================================
+# Weitere Provider-Beispiele
+# ============================================
+
+  # Web.de
+  # - name: "Web.de"
+  #   user: "deine@web.de"
+  #   password: "passwort"
+  #   server: "imap.web.de"
+  #   port: 993
+  #   spam_folder: "Spamverdacht"
+  #   enabled: false
+
+  # 1&1 / IONOS
+  # - name: "IONOS"
+  #   user: "deine@domain.de"
+  #   password: "passwort"
+  #   server: "imap.ionos.de"
+  #   port: 993
+  #   spam_folder: "Spam"
+  #   enabled: false
+
+  # Strato
+  # - name: "Strato"
+  #   user: "deine@domain.de"
+  #   password: "passwort"
+  #   server: "imap.strato.de"
+  #   port: 993
+  #   spam_folder: "Spam"
+  #   enabled: false

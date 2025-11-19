@@ -1,0 +1,9 @@
+# Python Dependencies für Ollama Spam Guard
+python-dotenv==1.0.0
+requests==2.31.0
+tqdm==4.66.1
+pyyaml==6.0.1
+
+# Development (optional)
+pytest==7.4.3
+pylint==3.0.3

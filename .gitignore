@@ -1,0 +1,68 @@
+# ========================================
+# Ollama Spam Guard - Git Ignore
+# ========================================
+
+# Environment & Credentials (NIEMALS committen!)
+.env
+.env.*
+!.env.example
+accounts.yaml
+!accounts.yaml.example
+
+# Python Runtime
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+*.pyo
+*.pyd
+.Python
+
+# Virtual Environments
+venv/
+env/
+ENV/
+.venv/
+virtualenv/
+
+# Distribution / Packaging
+build/
+dist/
+*.egg-info/
+*.egg
+wheels/
+
+# Logs & Output
+logs/
+*.log
+spam_filter.log
+~/spam_filter.log
+
+# IDE & Editors
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.pydevproject
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Testing
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+*.cover
+
+# Jupyter Notebooks (falls später genutzt)
+.ipynb_checkpoints/
+
+# Temp Files
+*.tmp
+*.bak
+*.orig
