@@ -39,7 +39,7 @@ help:
 # Verbindungstest ausführen
 test:
 	@echo "🔍 Starte Verbindungstest..."
-	@python test_connection.py
+	@python scripts/test_connection.py
 
 # Spam-Filter starten
 run:
@@ -49,27 +49,27 @@ run:
 # E-Mails von Whitelist-Absendern aus Spam-Ordner wiederherstellen
 unspam:
 	@echo "♻️  Starte Unspam..."
-	@python unspam.py
+	@python scripts/unspam.py
 
 # E-Mails wiederherstellen (automatisch, ohne Nachfrage)
 unspam-auto:
 	@echo "♻️  Starte Unspam (automatisch)..."
-	@python unspam.py --auto
+	@python scripts/unspam.py --auto
 
 # E-Mails nur anzeigen (Dry-Run)
 unspam-dry:
 	@echo "♻️  Starte Unspam (Dry-Run)..."
-	@python unspam.py --dry-run
+	@python scripts/unspam.py --dry-run
 
 # IMAP-Ordnerstruktur anzeigen
 folders:
 	@echo "📁 Zeige IMAP-Ordnerstruktur..."
-	@python list_folders.py
+	@python scripts/list_folders.py
 
 # Alle Ordner anzeigen (inkl. System-Ordner)
 folders-all:
 	@echo "📁 Zeige ALLE IMAP-Ordner..."
-	@python list_folders.py --all
+	@python scripts/list_folders.py --all
 
 # Dependencies installieren
 install:
@@ -92,7 +92,7 @@ clean:
 
 # Whitelist anzeigen
 whitelist-show:
-	@python manage_lists.py whitelist show
+	@python scripts/manage_lists.py whitelist show
 
 # Zur Whitelist hinzufügen
 # Usage: make whitelist-add ENTRY=email@example.com
@@ -102,7 +102,7 @@ ifndef ENTRY
 	@echo "Usage: make whitelist-add ENTRY=email@example.com"
 	@exit 1
 endif
-	@python manage_lists.py whitelist add "$(ENTRY)"
+	@python scripts/manage_lists.py whitelist add "$(ENTRY)"
 
 # Von Whitelist entfernen
 # Usage: make whitelist-remove ENTRY=email@example.com
@@ -112,11 +112,11 @@ ifndef ENTRY
 	@echo "Usage: make whitelist-remove ENTRY=email@example.com"
 	@exit 1
 endif
-	@python manage_lists.py whitelist remove "$(ENTRY)"
+	@python scripts/manage_lists.py whitelist remove "$(ENTRY)"
 
 # Blacklist anzeigen
 blacklist-show:
-	@python manage_lists.py blacklist show
+	@python scripts/manage_lists.py blacklist show
 
 # Zur Blacklist hinzufügen
 # Usage: make blacklist-add ENTRY=spam@example.com
@@ -126,7 +126,7 @@ ifndef ENTRY
 	@echo "Usage: make blacklist-add ENTRY=spam@example.com"
 	@exit 1
 endif
-	@python manage_lists.py blacklist add "$(ENTRY)"
+	@python scripts/manage_lists.py blacklist add "$(ENTRY)"
 
 # Von Blacklist entfernen
 # Usage: make blacklist-remove ENTRY=spam@example.com
@@ -136,7 +136,7 @@ ifndef ENTRY
 	@echo "Usage: make blacklist-remove ENTRY=spam@example.com"
 	@exit 1
 endif
-	@python manage_lists.py blacklist remove "$(ENTRY)"
+	@python scripts/manage_lists.py blacklist remove "$(ENTRY)"
 
 # Projekt-Status anzeigen
 status:

@@ -22,7 +22,7 @@ import argparse
 from pathlib import Path
 
 # Pfade zu Listen-Dateien
-LISTS_DIR = Path(__file__).parent / "data" / "lists"
+LISTS_DIR = Path(__file__).parent.parent / "data" / "lists"
 WHITELIST_FILE = LISTS_DIR / "whitelist.txt"
 BLACKLIST_FILE = LISTS_DIR / "blacklist.txt"
 

@@ -25,7 +25,7 @@ from typing import List, Dict, Tuple
 from dotenv import load_dotenv
 
 # Füge src/ zum Python-Path hinzu
-sys.path.insert(0, str(Path(__file__).parent / 'src'))
+sys.path.insert(0, str(Path(__file__).parent.parent / 'src'))
 
 from config import EMAIL_ACCOUNTS, LOG_PATH
 from list_manager import get_list_manager
