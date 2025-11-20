@@ -108,8 +108,15 @@ Manchmal werden wichtige E-Mails fälschlich als Spam markiert. Das **Unspam-Too
 ### Workflow
 
 1. **Nach Spam-Filter-Lauf**: Prüfe die Spam-Absender-Übersicht
-2. **Whitelist aktualisieren**: Füge vertrauenswürdige Absender hinzu
+2. **Whitelist aktualisieren**: 
    ```bash
+   # Einfach mit Make-Befehl
+   make whitelist-add ENTRY=wichtig@firma.de
+   
+   # Oder ganze Domain
+   make whitelist-add ENTRY=firma.de
+   
+   # Oder manuell
    echo "wichtig@firma.de" >> data/lists/whitelist.txt
    ```
 3. **E-Mails wiederherstellen**:
@@ -118,6 +125,20 @@ Manchmal werden wichtige E-Mails fälschlich als Spam markiert. Das **Unspam-Too
    make unspam-auto     # Automatisch (ohne Nachfrage)
    make unspam-dry      # Nur anzeigen (Dry-Run)
    ```
+
+### Listen verwalten
+
+```bash
+# Whitelist
+make whitelist-show                    # Anzeigen
+make whitelist-add ENTRY=email@test.de # Hinzufügen
+make whitelist-remove ENTRY=email@test.de # Entfernen
+
+# Blacklist  
+make blacklist-show                    # Anzeigen
+make blacklist-add ENTRY=spam@bad.com  # Hinzufügen
+make blacklist-remove ENTRY=spam@bad.com # Entfernen
+```
 
 Das Tool durchsucht alle Spam-Ordner, findet E-Mails von Whitelist-Absendern und verschiebt diese zurück in den Posteingang.
 

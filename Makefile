@@ -9,7 +9,9 @@
 #   make folders   - Ordnerstruktur anzeigen
 #   make help      - Hilfe anzeigen
 
-.PHONY: help test run folders install clean
+.PHONY: help test run folders install clean unspam unspam-auto unspam-dry \
+        whitelist-show whitelist-add whitelist-remove \
+        blacklist-show blacklist-add blacklist-remove
 
 # Standard-Target (wird bei 'make' ohne Parameter aufgerufen)
 help:
@@ -21,6 +23,12 @@ help:
 	@echo "  make run        - Spam-Filter starten"
 	@echo "  make unspam     - Whitelist-E-Mails aus Spam wiederherstellen"
 	@echo "  make folders    - IMAP-Ordnerstruktur anzeigen"
+	@echo ""
+	@echo "  Listen verwalten:"
+	@echo "  make whitelist-show              - Whitelist anzeigen"
+	@echo "  make whitelist-add ENTRY=<mail>  - Zur Whitelist hinzufügen"
+	@echo "  make blacklist-show              - Blacklist anzeigen"
+	@echo "  make blacklist-add ENTRY=<mail>  - Zur Blacklist hinzufügen"
 	@echo ""
 	@echo "  make install    - Python-Dependencies installieren"
 	@echo "  make clean      - Cache-Dateien löschen"
@@ -77,6 +85,58 @@ clean:
 	@find . -type f -name "*.pyo" -delete
 	@find . -type f -name "*.pyd" -delete
 	@echo "✅ Cache gelöscht!"
+
+# ============================================
+# Listen-Verwaltung
+# ============================================
+
+# Whitelist anzeigen
+whitelist-show:
+	@python manage_lists.py whitelist show
+
+# Zur Whitelist hinzufügen
+# Usage: make whitelist-add ENTRY=email@example.com
+whitelist-add:
+ifndef ENTRY
+	@echo "❌ Fehler: ENTRY nicht angegeben"
+	@echo "Usage: make whitelist-add ENTRY=email@example.com"
+	@exit 1
+endif
+	@python manage_lists.py whitelist add "$(ENTRY)"
+
+# Von Whitelist entfernen
+# Usage: make whitelist-remove ENTRY=email@example.com
+whitelist-remove:
+ifndef ENTRY
+	@echo "❌ Fehler: ENTRY nicht angegeben"
+	@echo "Usage: make whitelist-remove ENTRY=email@example.com"
+	@exit 1
+endif
+	@python manage_lists.py whitelist remove "$(ENTRY)"
+
+# Blacklist anzeigen
+blacklist-show:
+	@python manage_lists.py blacklist show
+
+# Zur Blacklist hinzufügen
+# Usage: make blacklist-add ENTRY=spam@example.com
+blacklist-add:
+ifndef ENTRY
+	@echo "❌ Fehler: ENTRY nicht angegeben"
+	@echo "Usage: make blacklist-add ENTRY=spam@example.com"
+	@exit 1
+endif
+	@python manage_lists.py blacklist add "$(ENTRY)"
+
+# Von Blacklist entfernen
+# Usage: make blacklist-remove ENTRY=spam@example.com
+blacklist-remove:
+ifndef ENTRY
+	@echo "❌ Fehler: ENTRY nicht angegeben"
+	@echo "Usage: make blacklist-remove ENTRY=spam@example.com"
+	@exit 1
+endif
+	@python manage_lists.py blacklist remove "$(ENTRY)"
 
 # Projekt-Status anzeigen
 status:
