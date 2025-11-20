@@ -18,6 +18,7 @@ import os
 import logging
 from typing import Tuple, Dict, Optional
 from datetime import datetime, timedelta
+from collections import defaultdict
 
 # ============================================
 # Konfiguration laden
@@ -289,7 +290,7 @@ def extract_body_preview(msg: email.message.Message) -> str:
     
     return body if body else "[Leerer Body]"
 
-def process_inbox(account: Dict[str, str]) -> Dict[str, int]:
+def process_inbox(account: Dict[str, str]) -> Dict[str, any]:
     """
     Hauptfunktion: Verarbeitet INBOX und filtert Spam.
     
@@ -297,16 +298,16 @@ def process_inbox(account: Dict[str, str]) -> Dict[str, int]:
         account: Account-Konfiguration
     
     Returns:
-        Dict mit Statistiken: {'spam': int, 'ham': int}
+        Dict mit Statistiken: {'spam': int, 'ham': int, 'spam_senders': list}
     """
     try:
         mail = connect_imap(account)
     except Exception as e:
         logging.error(f"Verbindung zu {account['user']} fehlgeschlagen: {e}")
         print(f"\n⚠️  Überspringe Account {account['user']} (Verbindung fehlgeschlagen)\n")
-        return {'spam': 0, 'ham': 0, 'error': True}
+        return {'spam': 0, 'ham': 0, 'spam_senders': [], 'error': True}
     
-    stats = {'spam': 0, 'ham': 0, 'error': False}
+    stats = {'spam': 0, 'ham': 0, 'spam_senders': [], 'error': False}
     
     try:
         # Suche E-Mails basierend auf Filter-Modus
@@ -380,6 +381,13 @@ def process_inbox(account: Dict[str, str]) -> Dict[str, int]:
                         mail.copy(email_id, account['spam_folder'])
                         mail.store(email_id, '+FLAGS', '\\Deleted')
                         logging.info(f"SPAM verschoben: {subject} von {sender} ({account['user']})")
+                        
+                        # Sammle Absender für Übersicht
+                        stats['spam_senders'].append({
+                            'email': sender,
+                            'subject': subject,
+                            'reason': reason
+                        })
                     except Exception as e:
                         logging.error(f"Spam-Verschiebung fehlgeschlagen: {e}")
                         print(f"   ⚠️  Verschiebung fehlgeschlagen: {e}")
@@ -408,6 +416,30 @@ def process_inbox(account: Dict[str, str]) -> Dict[str, int]:
             mail.expunge()  # Lösche markierte E-Mails
             mail.logout()
             print("✅ IMAP-Verbindung geschlossen")
+            
+            # Zeige Spam-Absender Übersicht
+            if stats.get('spam_senders'):
+                print("\n" + "="*60)
+                print(f"🚫 SPAM-ABSENDER ÜBERSICHT ({len(stats['spam_senders'])} E-Mails verschoben)")
+                print("="*60)
+                
+                # Gruppiere nach E-Mail-Adresse
+                senders_grouped = defaultdict(list)
+                for spam_mail in stats['spam_senders']:
+                    senders_grouped[spam_mail['email']].append(spam_mail['subject'])
+                
+                for sender_email, subjects in sorted(senders_grouped.items()):
+                    print(f"\n📧 {sender_email} ({len(subjects)} E-Mail(s))")
+                    for subject in subjects[:3]:  # Zeige max 3 Betreffs
+                        print(f"   • {subject[:70]}{'...' if len(subject) > 70 else ''}")
+                    if len(subjects) > 3:
+                        print(f"   ... und {len(subjects) - 3} weitere")
+                
+                print("\n" + "="*60)
+                print("💡 TIPP: Falls eine E-Mail-Adresse fälschlich blockiert wurde:")
+                print("   1. Füge sie zur Whitelist hinzu: data/lists/whitelist.txt")
+                print("   2. Stelle E-Mails wieder her: make unspam")
+                print("="*60 + "\n")
         except Exception as e:
             logging.error(f"Logout fehlgeschlagen: {e}", exc_info=True)
 

@@ -81,6 +81,7 @@ ollama pull qwen2.5:7b            # Mittlere Systeme (8-16GB RAM)
 ```bash
 make test    # Verbindungstest (Ollama, LLM, IMAP)
 make run     # Spam-Filter starten
+make unspam  # Whitelist-E-Mails aus Spam wiederherstellen
 make folders # IMAP-Ordnerstruktur anzeigen
 make help    # Alle verfügbaren Befehle
 ```
@@ -93,9 +94,38 @@ python test_connection.py
 # Spam-Filter starten
 python src/spam_filter.py
 
+# E-Mails wiederherstellen
+python unspam.py
+
 # Ordnerstruktur prüfen
 python list_folders.py
 ```
+
+## Spam-Wiederherstellung
+
+Manchmal werden wichtige E-Mails fälschlich als Spam markiert. Das **Unspam-Tool** hilft dabei:
+
+### Workflow
+
+1. **Nach Spam-Filter-Lauf**: Prüfe die Spam-Absender-Übersicht
+2. **Whitelist aktualisieren**: Füge vertrauenswürdige Absender hinzu
+   ```bash
+   echo "wichtig@firma.de" >> data/lists/whitelist.txt
+   ```
+3. **E-Mails wiederherstellen**:
+   ```bash
+   make unspam          # Interaktiv (mit Nachfrage)
+   make unspam-auto     # Automatisch (ohne Nachfrage)
+   make unspam-dry      # Nur anzeigen (Dry-Run)
+   ```
+
+Das Tool durchsucht alle Spam-Ordner, findet E-Mails von Whitelist-Absendern und verschiebt diese zurück in den Posteingang.
+
+**Vorteile:**
+- ✅ Kein manuelles Durchsuchen der Spam-Ordner nötig
+- ✅ Funktioniert für alle konfigurierten Accounts
+- ✅ Sicher: Nur Whitelist-Absender werden verschoben
+- ✅ Dry-Run-Modus zum Testen
 
 ## Konfiguration
 
@@ -208,6 +238,7 @@ DAYS_BACK=7
 - 📖 **[SETUP.md](docs/SETUP.md)** - Vollständige Setup-Anleitung mit Modellübersicht
 - 🔧 **[CONFIGURATION.md](docs/CONFIGURATION.md)** - Detaillierte Konfigurationsoptionen
 - 🌐 **[BLACKLIST_SOURCES.md](docs/BLACKLIST_SOURCES.md)** - Externe Blacklist-Quellen & eigene Listen hinzufügen
+- ♻️ **[UNSPAM.md](docs/UNSPAM.md)** - Spam-Wiederherstellung: E-Mails aus Spam-Ordner zurückholen
 - ⚠️ **[TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)** - Problemlösungen & häufige Fehler
 
 ## Systemanforderungen

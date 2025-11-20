@@ -19,6 +19,7 @@ help:
 	@echo ""
 	@echo "  make test       - Verbindungstest (Ollama, LLM, IMAP)"
 	@echo "  make run        - Spam-Filter starten"
+	@echo "  make unspam     - Whitelist-E-Mails aus Spam wiederherstellen"
 	@echo "  make folders    - IMAP-Ordnerstruktur anzeigen"
 	@echo ""
 	@echo "  make install    - Python-Dependencies installieren"
@@ -36,6 +37,21 @@ test:
 run:
 	@echo "🛡️  Starte Spam-Filter..."
 	@python src/spam_filter.py
+
+# E-Mails von Whitelist-Absendern aus Spam-Ordner wiederherstellen
+unspam:
+	@echo "♻️  Starte Unspam..."
+	@python unspam.py
+
+# E-Mails wiederherstellen (automatisch, ohne Nachfrage)
+unspam-auto:
+	@echo "♻️  Starte Unspam (automatisch)..."
+	@python unspam.py --auto
+
+# E-Mails nur anzeigen (Dry-Run)
+unspam-dry:
+	@echo "♻️  Starte Unspam (Dry-Run)..."
+	@python unspam.py --dry-run
 
 # IMAP-Ordnerstruktur anzeigen
 folders:
