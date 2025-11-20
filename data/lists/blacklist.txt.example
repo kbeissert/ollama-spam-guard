@@ -1,0 +1,40 @@
+# ============================================
+# Blacklist für Ollama Spam Guard - BEISPIELDATEI
+# ============================================
+#
+# WICHTIG: Kopiere diese Datei zu "blacklist.txt" und passe sie an!
+# cp data/lists/blacklist.txt.example data/lists/blacklist.txt
+#
+# Einträge in dieser Datei werden IMMER als SPAM behandelt.
+# Blacklist hat Priorität vor LLM-Analyse, aber NACH Whitelist.
+#
+# Format:
+# - Eine E-Mail-Adresse oder Domain pro Zeile
+# - Kommentare beginnen mit #
+# - Leerzeilen werden ignoriert
+#
+# ============================================
+# Beispiele:
+# ============================================
+#
+# Komplette E-Mail-Adressen (exakte Übereinstimmung):
+# spammer@badsite.com
+# phishing@scam.net
+#
+# Ganze Domains (alle E-Mails von dieser Domain):
+# known-spam-domain.com
+# phishing-site.ru
+#
+# ============================================
+# Ihre blockierten Absender:
+# ============================================
+
+# Beispiel: Bekannte Spam-Domains
+# spam-domain.xyz
+# scam-site.ru
+
+# Beispiel: Phishing-Adressen
+# noreply@fake-bank.com
+
+# Beispiel: Nervige Absender
+# annoying-marketing@somewhere.com

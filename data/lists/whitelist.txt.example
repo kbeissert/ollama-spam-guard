@@ -1,0 +1,40 @@
+# ============================================
+# Whitelist für Ollama Spam Guard - BEISPIELDATEI
+# ============================================
+#
+# WICHTIG: Kopiere diese Datei zu "whitelist.txt" und passe sie an!
+# cp data/lists/whitelist.txt.example data/lists/whitelist.txt
+#
+# Einträge in dieser Datei werden IMMER als HAM (kein Spam) behandelt.
+# Whitelist hat die HÖCHSTE PRIORITÄT vor Blacklist und LLM-Analyse.
+#
+# Format:
+# - Eine E-Mail-Adresse oder Domain pro Zeile
+# - Kommentare beginnen mit #
+# - Leerzeilen werden ignoriert
+#
+# ============================================
+# Beispiele:
+# ============================================
+#
+# Komplette E-Mail-Adressen (exakte Übereinstimmung):
+# trusted-sender@example.com
+# newsletter@company.com
+#
+# Ganze Domains (alle E-Mails von dieser Domain):
+# trusted-domain.com
+# mycompany.de
+#
+# ============================================
+# Ihre vertrauenswürdigen Absender:
+# ============================================
+
+# Beispiel: Firmen-Domains
+# company.com
+# partner-firma.de
+
+# Beispiel: Bekannte Newsletter
+# newsletter@trusted-service.com
+
+# Beispiel: Persönliche Kontakte
+# friend@email.com

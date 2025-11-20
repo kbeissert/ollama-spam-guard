@@ -8,6 +8,8 @@
 
 - ✅ **Multi-Account Support**: Mehrere E-Mail-Konten gleichzeitig verwalten
 - ✅ **Lokale Spam-Erkennung**: Keine Cloud, 100% lokal via Ollama
+- ✅ **3-Stufen-Filter**: Whitelist → Blacklist → LLM-Analyse
+- ✅ **Externe Blacklists**: Automatisches Laden von Spamhaus, Blocklist.de etc.
 - ✅ **IMAP-Support**: All-Inkl, Gmail, GMX, Outlook, HostEurope, Berlin.de, etc.
 - ✅ **LLM-basiert**: Nutzt `qwen2.5:14b-instruct` (14B Parameter)
 - ✅ **YAML-Konfiguration**: Übersichtliche Account-Verwaltung
@@ -41,6 +43,11 @@ cp .env.example .env
 
 # accounts.yaml anlegen
 cp accounts.yaml.example accounts.yaml
+
+# Whitelist/Blacklist anlegen
+cp data/lists/whitelist.txt.example data/lists/whitelist.txt
+cp data/lists/blacklist.txt.example data/lists/blacklist.txt
+cp data/lists/blacklist_sources.yaml.example data/lists/blacklist_sources.yaml
 ```
 
 ### 3. Accounts konfigurieren
@@ -101,6 +108,12 @@ SPAM_MODEL=qwen2.5:14b-instruct
 FILTER_MODE=count  # oder "days"
 LIMIT=50           # Anzahl E-Mails
 DAYS_BACK=7        # Tage zurück
+
+# Blacklist/Whitelist System
+USE_LISTS=true                # Aktiviert Listen-basierte Filterung
+LIST_UPDATE_INTERVAL=24       # Update-Intervall für externe Listen (Stunden)
+WHITELIST_FILE=data/lists/whitelist.txt
+BLACKLIST_FILE=data/lists/blacklist.txt
 ```
 
 ### E-Mail-Accounts (`accounts.yaml`)
@@ -116,6 +129,48 @@ accounts:
 ```
 
 **Wichtig**: Nur Accounts mit `enabled: true` werden verarbeitet!
+
+### Whitelist/Blacklist (`data/lists/`)
+
+**Whitelist** (`whitelist.txt`) - Vertrauenswürdige Absender:
+```bash
+# E-Mail-Adressen (exakt)
+admin@company.com
+
+# Ganze Domains (alle E-Mails von dieser Domain)
+trusted-domain.com
+```
+
+**Blacklist** (`blacklist.txt`) - Bekannte Spam-Absender:
+```bash
+# Spam-Adressen
+spam@badsite.com
+
+# Spam-Domains
+known-spammer.xyz
+```
+
+**Externe Blacklists** werden automatisch geladen:
+- Spamhaus DROP (IP-basiert)
+- Blocklist.de (IP-basiert)
+
+💡 **Update-Intervall**: Standard 24h, konfigurierbar via `LIST_UPDATE_INTERVAL`
+
+## Spam-Filter Logik
+
+Das System verwendet einen **3-Stufen-Ansatz**:
+
+```
+1. WHITELIST → E-Mail IMMER als HAM (kein Spam)
+   ↓ nicht gefunden
+2. BLACKLIST → E-Mail IMMER als SPAM
+   ↓ nicht gefunden  
+3. LLM-ANALYSE → Intelligente Bewertung mit qwen2.5:14b-instruct
+```
+
+**Priorität**: Whitelist > Blacklist > LLM
+
+📖 Details: [CONFIGURATION.md - Blacklist/Whitelist-System](docs/CONFIGURATION.md#blacklistwhitelist-system)
 
 ## Unterstützte E-Mail-Provider
 
@@ -152,6 +207,7 @@ DAYS_BACK=7
 
 - 📖 **[SETUP.md](docs/SETUP.md)** - Vollständige Setup-Anleitung mit Modellübersicht
 - 🔧 **[CONFIGURATION.md](docs/CONFIGURATION.md)** - Detaillierte Konfigurationsoptionen
+- 🌐 **[BLACKLIST_SOURCES.md](docs/BLACKLIST_SOURCES.md)** - Externe Blacklist-Quellen & eigene Listen hinzufügen
 - ⚠️ **[TROUBLESHOOTING.md](docs/TROUBLESHOOTING.md)** - Problemlösungen & häufige Fehler
 
 ## Systemanforderungen

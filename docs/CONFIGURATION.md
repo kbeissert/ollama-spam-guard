@@ -62,6 +62,185 @@ LOG_PATH=~/spam_filter.log
 | `DAYS_BACK` | Zahl | Tage zurück (bei `days`) |
 | `ACCOUNTS_FILE` | Pfad | Pfad zu accounts.yaml |
 | `LOG_PATH` | Pfad | Log-Datei |
+| **`USE_LISTS`** | **`true`/`false`** | **Aktiviert Blacklist/Whitelist-System** |
+| **`LIST_UPDATE_INTERVAL`** | **Zahl** | **Update-Intervall für externe Listen (Stunden)** |
+| **`WHITELIST_FILE`** | **Pfad** | **Pfad zur lokalen Whitelist** |
+| **`BLACKLIST_FILE`** | **Pfad** | **Pfad zur lokalen Blacklist** |
+| **`LISTS_CACHE_DIR`** | **Pfad** | **Cache-Verzeichnis für externe Listen** |
+| **`FORCE_LIST_UPDATE`** | **`true`/`false`** | **Erzwingt Listen-Update beim Start** |
+
+---
+
+## Blacklist/Whitelist-System
+
+### Übersicht
+
+Das Blacklist/Whitelist-System bietet einen **Hard Filter** vor der LLM-Analyse:
+
+**Priorität (von höchster zu niedrigster)**:
+1. **Whitelist** → E-Mail wird IMMER als HAM (kein Spam) behandelt
+2. **Blacklist** → E-Mail wird IMMER als SPAM behandelt  
+3. **LLM-Analyse** → Nur wenn nicht in Listen gefunden
+
+### Aktivierung
+
+**.env**:
+```bash
+# Blacklist/Whitelist aktivieren
+USE_LISTS=true
+
+# Update-Intervall für externe Listen (Standard: 24 Stunden)
+LIST_UPDATE_INTERVAL=24
+
+# Lokale Listen (relativ zum Projekt-Root)
+WHITELIST_FILE=data/lists/whitelist.txt
+BLACKLIST_FILE=data/lists/blacklist.txt
+
+# Cache-Verzeichnis für externe Listen
+LISTS_CACHE_DIR=data/lists
+
+# Erzwinge Update beim Start (ignoriert Cache)
+FORCE_LIST_UPDATE=false
+```
+
+### Lokale Listen bearbeiten
+
+#### Whitelist (`data/lists/whitelist.txt`)
+```bash
+# Vertrauenswürdige Absender (werden NIE als Spam markiert)
+
+# Komplette E-Mail-Adressen
+admin@example.com
+newsletter@company.de
+
+# Ganze Domains (alle E-Mails von dieser Domain)
+trusted-company.com
+partner-domain.de
+```
+
+#### Blacklist (`data/lists/blacklist.txt`)
+```bash
+# Bekannte Spam-Absender (werden IMMER als Spam markiert)
+
+# Komplette E-Mail-Adressen
+spam@badsite.com
+phishing@scam.net
+
+# Ganze Domains
+known-spam-domain.xyz
+scammer.ru
+```
+
+### Externe Blacklists
+
+Automatisch geladen werden (wenn `USE_LISTS=true`):
+
+| Quelle | Typ | Beschreibung | Update-Intervall |
+|--------|-----|--------------|------------------|
+| **Spamhaus DROP** | IP | Don't Route Or Peer List | Konfigurierbar |
+| **Blocklist.de** | IP | Umfassende IP-Blacklist | Konfigurierbar |
+
+**Cache-Speicherort**: `data/lists/` (z.B. `spamhaus_drop.txt`, `blocklist_de.txt`)
+
+### Funktionsweise
+
+```
+┌─────────────────────────────────────────────────────┐
+│              Eingehende E-Mail                      │
+│         (Absender: unknown@example.com)             │
+└─────────────────────────────────────────────────────┘
+                        ↓
+         ┌──────────────────────────────┐
+         │   1. WHITELIST CHECK          │
+         │   Ist Absender/Domain in      │
+         │   whitelist.txt?              │
+         └──────────────────────────────┘
+                  ↓ JA                ↓ NEIN
+         ✅ HAM (kein Spam)            ↓
+         └─ FERTIG              ┌──────────────────────────────┐
+                                │   2. BLACKLIST CHECK          │
+                                │   Ist Absender/Domain in      │
+                                │   blacklist.txt oder externe  │
+                                │   Listen?                     │
+                                └──────────────────────────────┘
+                                     ↓ JA                ↓ NEIN
+                            🚫 SPAM                      ↓
+                            └─ FERTIG           ┌──────────────────────────────┐
+                                                │   3. LLM-ANALYSE              │
+                                                │   qwen2.5:14b-instruct        │
+                                                │   analysiert E-Mail           │
+                                                └──────────────────────────────┘
+                                                         ↓
+                                                   ✅ HAM / 🚫 SPAM
+```
+
+### Listen verwalten
+
+#### Listen manuell aktualisieren
+```bash
+# ListManager im Test-Modus starten
+python src/list_manager.py
+```
+
+#### Listen erzwingen beim Start
+```bash
+# .env setzen
+FORCE_LIST_UPDATE=true
+```
+
+#### Cache löschen (komplettes Neu-Download)
+```bash
+rm -rf data/lists/*.txt data/lists/metadata.json
+```
+
+### Statistiken anzeigen
+
+```python
+from src.list_manager import get_list_manager
+
+manager = get_list_manager()
+stats = manager.get_stats()
+
+print(f"Whitelist: {stats['whitelist']['total']} Einträge")
+print(f"Blacklist: {stats['blacklist']['total']} Einträge")
+print(f"Cache: {stats['cache']['directory']}")
+```
+
+### Best Practices
+
+#### ✅ DO
+- Füge vertrauenswürdige Newsletter zur Whitelist hinzu
+- Pflege die Blacklist mit wiederholten Spam-Absendern
+- Nutze Domains statt einzelner E-Mails (flexibler)
+- Prüfe regelmäßig die Listen auf Duplikate
+- Aktiviere `FORCE_LIST_UPDATE=true` nach längerer Inaktivität
+
+#### ❌ DON'T
+- Niemals fremde Domains blind zur Whitelist hinzufügen
+- Nicht zu viele Einträge in lokalen Listen (Performance)
+- Cache nicht manuell editieren (wird überschrieben)
+- Externe Listen nicht direkt bearbeiten
+
+### Troubleshooting
+
+#### Listen werden nicht geladen
+```bash
+# Prüfe Logs
+tail -f ~/spam_filter.log | grep -i "list"
+
+# Prüfe Konfiguration
+python -c "from src.config import USE_LISTS, LISTS_CACHE_DIR; print(f'USE_LISTS={USE_LISTS}, CACHE={LISTS_CACHE_DIR}')"
+```
+
+#### Externe Listen Download fehlgeschlagen
+- Cache wird verwendet (falls vorhanden)
+- Fehler wird geloggt, Script läuft weiter
+- Manueller Download möglich: `python src/list_manager.py`
+
+#### E-Mail trotz Whitelist als Spam markiert
+- Prüfe exakte Schreibweise (Groß-/Kleinschreibung wird ignoriert)
+- Prüfe Domain-Extraktion: `@domain.com` muss als `domain.com` in Liste sein
+- Prüfe Logs für `"Hard Filter"` Einträge
 
 ---
 

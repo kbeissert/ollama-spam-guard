@@ -81,3 +81,23 @@ FILTER_MODE = os.getenv('FILTER_MODE', 'count')  # 'count' oder 'days'
 LIMIT = int(os.getenv('LIMIT', '5'))  # Anzahl E-Mails (bei FILTER_MODE=count)
 DAYS_BACK = int(os.getenv('DAYS_BACK', '7'))  # Tage zurück (bei FILTER_MODE=days)
 LOG_PATH = os.path.expanduser(os.getenv('LOG_PATH', '~/spam_filter.log'))
+
+# ============================================
+# Blacklist/Whitelist Settings
+# ============================================
+
+# Aktiviere/Deaktiviere Blacklist/Whitelist-System
+USE_LISTS = os.getenv('USE_LISTS', 'true').lower() == 'true'
+
+# Update-Intervall für externe Blacklists (in Stunden)
+LIST_UPDATE_INTERVAL = int(os.getenv('LIST_UPDATE_INTERVAL', '24'))
+
+# Pfade für lokale Listen (relativ zum Projekt-Root)
+WHITELIST_FILE = os.getenv('WHITELIST_FILE', 'data/lists/whitelist.txt')
+BLACKLIST_FILE = os.getenv('BLACKLIST_FILE', 'data/lists/blacklist.txt')
+
+# Cache-Verzeichnis für externe Listen
+LISTS_CACHE_DIR = os.getenv('LISTS_CACHE_DIR', 'data/lists')
+
+# Erzwinge Update beim Start (überschreibt Cache)
+FORCE_LIST_UPDATE = os.getenv('FORCE_LIST_UPDATE', 'false').lower() == 'true'

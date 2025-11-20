@@ -16,7 +16,7 @@ from dotenv import load_dotenv
 from tqdm import tqdm
 import os
 import logging
-from typing import Tuple, Dict
+from typing import Tuple, Dict, Optional
 from datetime import datetime, timedelta
 
 # ============================================
@@ -26,8 +26,10 @@ from datetime import datetime, timedelta
 load_dotenv()
 
 from config import (
-    EMAIL_ACCOUNTS, OLLAMA_URL, SPAM_MODEL, FILTER_MODE, LIMIT, DAYS_BACK, LOG_PATH
+    EMAIL_ACCOUNTS, OLLAMA_URL, SPAM_MODEL, FILTER_MODE, LIMIT, DAYS_BACK, LOG_PATH,
+    USE_LISTS, LIST_UPDATE_INTERVAL, FORCE_LIST_UPDATE, LISTS_CACHE_DIR
 )
+from list_manager import ListManager
 
 # Logging-Setup
 log_path = LOG_PATH
@@ -36,6 +38,61 @@ logging.basicConfig(
     level=logging.INFO,
     format='%(asctime)s - %(levelname)s - %(message)s'
 )
+
+# ============================================
+# Blacklist/Whitelist Manager (global)
+# ============================================
+
+# Globale Instanz des ListManagers (wird bei Bedarf initialisiert)
+_list_manager = None
+
+def init_list_manager() -> Optional[ListManager]:
+    """
+    Initialisiert den ListManager beim ersten Aufruf.
+    
+    Returns:
+        ListManager oder None falls deaktiviert
+    """
+    global _list_manager
+    
+    if not USE_LISTS:
+        logging.info("Blacklist/Whitelist-System deaktiviert (USE_LISTS=false)")
+        return None
+    
+    if _list_manager is None:
+        try:
+            from pathlib import Path
+            # Cache für externe Listen in separatem Unterverzeichnis
+            cache_dir = Path(__file__).parent.parent / LISTS_CACHE_DIR / "external"
+            
+            print("🔍 Initialisiere Blacklist/Whitelist-System...")
+            logging.info(f"Initialisiere Blacklist/Whitelist-System (Update-Intervall: {LIST_UPDATE_INTERVAL}h)")
+            logging.info(f"User-Listen: data/lists/, Cache: data/lists/external/")
+            
+            _list_manager = ListManager(cache_dir=cache_dir, update_interval_hours=LIST_UPDATE_INTERVAL)
+            _list_manager.load_all_lists(force_update=FORCE_LIST_UPDATE)
+            
+            # Zeige Statistiken
+            stats = _list_manager.get_stats()
+            print(f"✅ Listen geladen:")
+            print(f"   📋 Whitelist: {stats['whitelist']['total']} Einträge ({stats['whitelist']['emails']} E-Mails, {stats['whitelist']['domains']} Domains)")
+            print(f"   🚫 Blacklist: {stats['blacklist']['total']} Einträge ({stats['blacklist']['emails']} E-Mails, {stats['blacklist']['domains']} Domains, {stats['blacklist']['ips']} IPs)")
+            
+            # Zeige Info zu externen Listen
+            if stats['cache']['sources']:
+                print(f"   🌐 Externe Listen: {', '.join(stats['cache']['sources'])}")
+            
+            logging.info(
+                f"Listen geladen: Whitelist={stats['whitelist']['total']}, "
+                f"Blacklist={stats['blacklist']['total']}"
+            )
+            
+        except Exception as e:
+            logging.error(f"Fehler beim Initialisieren des ListManagers: {e}", exc_info=True)
+            print(f"⚠️  Blacklist/Whitelist-System konnte nicht geladen werden: {e}")
+            return None
+    
+    return _list_manager
 
 # ============================================
 # IMAP-Funktionen
@@ -86,7 +143,10 @@ def connect_imap(account: Dict[str, str]) -> imaplib.IMAP4_SSL:
 
 def detect_spam(sender: str, subject: str, body: str) -> Tuple[bool, str]:
     """
-    Analysiert E-Mail mit qwen2.5:14b-instruct LLM via Ollama.
+    Analysiert E-Mail mit 3-stufigem Ansatz:
+    1. Whitelist-Check (höchste Priorität) → kein Spam
+    2. Blacklist-Check → Spam
+    3. LLM-Analyse via qwen2.5:14b-instruct (falls nicht in Listen)
     
     Args:
         sender: Absender-E-Mail
@@ -96,6 +156,28 @@ def detect_spam(sender: str, subject: str, body: str) -> Tuple[bool, str]:
     Returns:
         Tuple[bool, str]: (is_spam, reason)
     """
+    # ============================================
+    # STUFE 1 & 2: Whitelist/Blacklist Check (Hard Filter)
+    # ============================================
+    
+    list_manager = init_list_manager()
+    
+    if list_manager:
+        # Prüfe E-Mail gegen Listen
+        is_spam_by_list, list_reason = list_manager.check_email(sender)
+        
+        if is_spam_by_list is not None:
+            # E-Mail wurde in Liste gefunden (Whitelist oder Blacklist)
+            logging.info(f"Hard Filter: {sender} → {list_reason}")
+            return is_spam_by_list, list_reason
+        
+        # E-Mail nicht in Listen → LLM-Analyse durchführen
+        logging.debug(f"E-Mail nicht in Listen gefunden, führe LLM-Analyse durch: {sender}")
+    
+    # ============================================
+    # STUFE 3: LLM-basierte Spam-Erkennung
+    # ============================================
+    
     prompt = f"""Analysiere diese E-Mail auf Spam-Indikatoren.
 
 Von: {sender}
@@ -356,7 +438,50 @@ def main():
         try:
             response = requests.get("http://localhost:11434/api/tags", timeout=3)
             if response.status_code == 200:
-                print("✅ Ollama läuft\n")
+                print("✅ Ollama läuft")
+                
+                # Prüfe ob Modell verfügbar ist
+                print(f"🔍 Prüfe LLM-Modell '{SPAM_MODEL}'...")
+                models_data = response.json()
+                available_models = [model['name'] for model in models_data.get('models', [])]
+                
+                if SPAM_MODEL in available_models:
+                    print(f"✅ Modell '{SPAM_MODEL}' ist verfügbar")
+                else:
+                    print(f"⚠️  Modell '{SPAM_MODEL}' nicht gefunden!")
+                    print(f"   Verfügbare Modelle: {', '.join(available_models) if available_models else 'keine'}")
+                    print(f"   Installation: ollama pull {SPAM_MODEL}")
+                    print("\n⏹️  Script wird abgebrochen.\n")
+                    logging.error(f"LLM-Modell {SPAM_MODEL} nicht verfügbar - Script abgebrochen")
+                    return
+                
+                # Teste LLM mit einfacher Anfrage (Warm-up)
+                print(f"🚀 Starte LLM '{SPAM_MODEL}'...")
+                print("   ⏳ Bitte warten, Modell wird geladen (beim ersten Aufruf kann das etwas dauern)...")
+                
+                try:
+                    warmup_response = requests.post(
+                        OLLAMA_URL,
+                        json={
+                            'model': SPAM_MODEL,
+                            'prompt': 'Test',
+                            'stream': False,
+                            'options': {'num_predict': 1}
+                        },
+                        timeout=60  # Längerer Timeout für Modell-Laden
+                    )
+                    warmup_response.raise_for_status()
+                    print(f"✅ LLM '{SPAM_MODEL}' ist einsatzbereit!\n")
+                    logging.info(f"LLM {SPAM_MODEL} erfolgreich initialisiert")
+                    
+                except requests.Timeout:
+                    print("⚠️  LLM-Initialisierung dauert zu lange (Timeout)")
+                    print("   Das Script läuft weiter, aber LLM-Anfragen könnten langsam sein.\n")
+                    logging.warning("LLM Warmup Timeout")
+                except Exception as e:
+                    print(f"⚠️  LLM-Test fehlgeschlagen: {e}")
+                    print("   Das Script läuft weiter, aber es könnte zu Problemen kommen.\n")
+                    logging.warning(f"LLM Warmup fehlgeschlagen: {e}")
             else:
                 print("⚠️  Ollama antwortet nicht wie erwartet\n")
         except requests.ConnectionError:

@@ -9,6 +9,18 @@
 accounts.yaml
 !accounts.yaml.example
 
+# User-spezifische Listen (persönliche Daten!)
+data/lists/whitelist.txt
+data/lists/blacklist.txt
+data/lists/blacklist_sources.yaml
+!data/lists/whitelist.txt.example
+!data/lists/blacklist.txt.example
+!data/lists/blacklist_sources.yaml.example
+
+# Externe Listen Cache (automatisch geladen, wird immer neu erstellt)
+data/lists/external/
+!data/lists/external/.gitkeep
+
 # Python Runtime
 __pycache__/
 *.py[cod]
@@ -51,6 +63,9 @@ spam_filter.log
 .DS_Store
 .AppleDouble
 .LSOverride
+
+# macOS App Bundle (plattformspezifisch, nicht committen)
+*.app/
 
 # Testing
 .pytest_cache/
