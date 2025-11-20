@@ -1,10 +1,21 @@
 #!/usr/bin/env python3
 """
 Ollama Spam Guard - IMAP Spam Filter mit lokalem LLM (qwen2.5:14b-instruct via Ollama)
-Automatische E-Mail-Filterung für All-Inkl KAS-Server
 
-Autor: Generiert mit Continue + Perplexity
-Datum: 2025-11-19
+3-stufige Spam-Erkennung:
+1. Whitelist-Check (höchste Priorität) → kein Spam
+2. Blacklist-Check mit externen Spam-Listen → Spam
+3. LLM-Analyse via Ollama (nur falls nicht in Listen)
+
+Features:
+- Multi-Account Support (IMAP)
+- Externe Blacklist-Provider (Spamhaus, Blocklist.de, etc.)
+- Whitelist/Blacklist Management mit Validierung
+- Spam-Absender-Übersicht nach Filterung
+- E-Mail-Wiederherstellung (Unspam-Tool)
+
+Autor: Generiert mit Continue + Codepilot
+Datum: 2025-11-20
 """
 
 import imaplib

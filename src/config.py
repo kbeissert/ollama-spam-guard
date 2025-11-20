@@ -99,5 +99,5 @@ BLACKLIST_FILE = os.getenv('BLACKLIST_FILE', 'data/lists/blacklist.txt')
 # Cache-Verzeichnis für externe Listen
 LISTS_CACHE_DIR = os.getenv('LISTS_CACHE_DIR', 'data/lists')
 
-# Erzwinge Update beim Start (überschreibt Cache)
+# Erzwinge Update beim Start (ignoriert Cache, lädt alle Listen neu)
 FORCE_LIST_UPDATE = os.getenv('FORCE_LIST_UPDATE', 'false').lower() == 'true'

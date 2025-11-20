@@ -6,26 +6,30 @@ Diese Datei dokumentiert verfügbare externe Blacklist-Quellen und erklärt, wie
 
 ## 🔧 Eigene Quellen hinzufügen
 
-### Schritt 1: `src/list_manager.py` öffnen
+### Schritt 1: `data/lists/blacklist_sources.yaml` öffnen
 
-Öffne die Datei und suche nach dem `BLACKLIST_SOURCES` Dictionary (ca. Zeile 35).
+Öffne die YAML-Konfigurationsdatei (erstelle sie aus dem Template falls nötig):
+
+```bash
+cp data/lists/blacklist_sources.yaml.example data/lists/blacklist_sources.yaml
+nano data/lists/blacklist_sources.yaml
+```
 
 ### Schritt 2: Quelle hinzufügen
 
-Füge einen neuen Eintrag hinzu:
+Füge einen neuen Eintrag im YAML-Format hinzu:
 
-```python
-"meine_liste": {
-    "url": "https://example.com/spam-list.txt",
-    "type": "domain",  # ip, ip_cidr, domain oder email
-    "description": "Beschreibung deiner Liste",
-    "enabled": True
-}
+```yaml
+meine_liste:
+  url: "https://example.com/spam-list.txt"
+  type: "domain"  # ip, ip_cidr, domain oder email
+  description: "Beschreibung deiner Liste"
+  enabled: true
 ```
 
-### Schritt 3: Script neu starten
+### Schritt 3: Spam-Filter neu starten
 
-Beim nächsten Start wird die neue Quelle automatisch geladen.
+Beim nächsten Start (`make run`) wird die neue Quelle automatisch geladen.
 
 ## 📋 Unterstützte Typen
 

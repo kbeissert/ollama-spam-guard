@@ -30,10 +30,10 @@ data/lists/
 ### Externe Listen (data/lists/external/)
 **Automatisch verwalteter Cache:**
 - 🌐 Externe Blacklists (Spamhaus, Blocklist.de, etc.)
-- 🔄 Wird automatisch aktualisiert (alle 24h)
-- 🗑️ Kann bedenkenlos gelöscht werden (wird neu erstellt)
-- ❌ Komplett in Git ignoriert
-- 📊 metadata.json für Update-Tracking
+- 🔄 Wird automatisch aktualisiert (Standard: alle 24h)
+- 🗑️ Kann bedenkenlos gelöscht werden (wird automatisch neu erstellt)
+- ❌ Komplett in Git ignoriert (.gitignore)
+- 📊 metadata.json für Update-Zeitstempel-Tracking
 
 ## ⚙️ Einrichtung
 

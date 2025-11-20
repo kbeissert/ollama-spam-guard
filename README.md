@@ -89,16 +89,16 @@ make help    # Alle verfügbaren Befehle
 **Oder manuell:**
 ```bash
 # Verbindungstest
-python test_connection.py
+python scripts/test_connection.py
 
 # Spam-Filter starten
 python src/spam_filter.py
 
 # E-Mails wiederherstellen
-python unspam.py
+python scripts/unspam.py
 
 # Ordnerstruktur prüfen
-python list_folders.py
+python scripts/list_folders.py
 ```
 
 ## Spam-Wiederherstellung

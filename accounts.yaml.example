@@ -4,7 +4,7 @@
 # Kopiere diese Datei zu accounts.yaml und passe die Daten an!
 # 
 # 💡 Hilfe beim Setup:
-#    python list_folders.py
+#    python scripts/list_folders.py
 #    
 #    Zeigt die Ordnerstruktur deiner E-Mail-Konten an und
 #    hilft dir, den richtigen Spam-Ordner-Namen zu finden!

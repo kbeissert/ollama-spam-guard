@@ -190,7 +190,7 @@ FORCE_LIST_UPDATE=true
 
 #### Cache löschen (komplettes Neu-Download)
 ```bash
-rm -rf data/lists/*.txt data/lists/metadata.json
+rm -rf data/lists/external/*.txt data/lists/external/metadata.json
 ```
 
 ### Statistiken anzeigen
