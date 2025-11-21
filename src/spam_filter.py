@@ -127,13 +127,13 @@ def connect_imap(account: Dict[str, str]) -> imaplib.IMAP4_SSL:
         print(f"🔌 Verbinde zu {account['server']}:{account['port']}...")
         mail = imaplib.IMAP4_SSL(account['server'], account['port'])
         
-        print(f"🔐 Login als {account['user']}...")
+        print(f"🔐 Login {account['name']}...")
         mail.login(account['user'], account['password'])
         
         print("📬 Öffne INBOX...")
         mail.select('INBOX')
         
-        logging.info(f"Erfolgreich verbunden mit {account['server']} ({account['user']})")
+        logging.info(f"Erfolgreich verbunden mit {account['server']} ({account['name']})")
         return mail
         
     except imaplib.IMAP4.error as e:
@@ -314,8 +314,8 @@ def process_inbox(account: Dict[str, str]) -> Dict[str, any]:
     try:
         mail = connect_imap(account)
     except Exception as e:
-        logging.error(f"Verbindung zu {account['user']} fehlgeschlagen: {e}")
-        print(f"\n⚠️  Überspringe Account {account['user']} (Verbindung fehlgeschlagen)\n")
+        logging.error(f"Verbindung zu {account['name']} fehlgeschlagen: {e}")
+        print(f"\n⚠️  Überspringe {account['name']} (Verbindung fehlgeschlagen)\n")
         return {'spam': 0, 'ham': 0, 'spam_senders': [], 'error': True}
     
     stats = {'spam': 0, 'ham': 0, 'spam_senders': [], 'error': False}
@@ -391,7 +391,7 @@ def process_inbox(account: Dict[str, str]) -> Dict[str, any]:
                     try:
                         mail.copy(email_id, account['spam_folder'])
                         mail.store(email_id, '+FLAGS', '\\Deleted')
-                        logging.info(f"SPAM verschoben: {subject} von {sender} ({account['user']})")
+                        logging.info(f"SPAM verschoben: {subject} von {sender} ({account['name']})")
                         
                         # Sammle Absender für Übersicht
                         stats['spam_senders'].append({
@@ -409,7 +409,7 @@ def process_inbox(account: Dict[str, str]) -> Dict[str, any]:
                     
                     # Markiere als gelesen
                     mail.store(email_id, '+FLAGS', '\\Seen')
-                    logging.info(f"HAM behalten: {subject} ({account['user']})")
+                    logging.info(f"HAM behalten: {subject} ({account['name']})")
                     
                     stats['ham'] += 1
                     
@@ -542,7 +542,7 @@ def main():
         # Verarbeite alle Accounts
         for idx, account in enumerate(EMAIL_ACCOUNTS, 1):
             print("\n" + "─"*60)
-            print(f"📬 Account {idx}/{len(EMAIL_ACCOUNTS)}: {account['user']}")
+            print(f"📬 Account {idx}/{len(EMAIL_ACCOUNTS)}: {account['name']}")
             print(f"   Server: {account['server']}")
             print("─"*60)
             
@@ -562,7 +562,7 @@ def main():
             account_total = stats['spam'] + stats['ham']
             if account_total > 0:
                 spam_rate = (stats['spam'] / account_total) * 100
-                print(f"\n   📊 {account['user']}: {account_total} E-Mails ({stats['spam']} SPAM, {stats['ham']} HAM, {spam_rate:.1f}% Spam-Rate)")
+                print(f"\n   📊 {account['name']}: {account_total} E-Mails ({stats['spam']} SPAM, {stats['ham']} HAM, {spam_rate:.1f}% Spam-Rate)")
         
         # Finale Gesamtstatistik
         total = total_stats['spam'] + total_stats['ham']

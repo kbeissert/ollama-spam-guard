@@ -50,7 +50,7 @@ def list_folders(account, show_all=False):
         mail = imaplib.IMAP4_SSL(account['server'], account['port'])
         
         # Login
-        print(f"🔐 Login als {account['user']}...")
+        print(f"🔐 Login {account['name']}...")
         mail.login(account['user'], account['password'])
         print("✅ Login erfolgreich!\n")
         

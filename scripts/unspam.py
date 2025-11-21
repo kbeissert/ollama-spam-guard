@@ -75,7 +75,7 @@ def find_whitelisted_spam(account: Dict[str, str], dry_run: bool = False) -> Lis
         
         if status != 'OK':
             print(f"⚠️  Spam-Ordner '{account['spam_folder']}' nicht gefunden!")
-            logging.warning(f"Spam-Ordner nicht gefunden: {account['spam_folder']} ({account['user']})")
+            logging.warning(f"Spam-Ordner nicht gefunden: {account['spam_folder']} ({account['name']})")
             return found_emails
         
         # Suche alle E-Mails im Spam-Ordner
@@ -139,7 +139,7 @@ def find_whitelisted_spam(account: Dict[str, str], dry_run: bool = False) -> Lis
         
     except Exception as e:
         print(f"❌ Fehler: {e}")
-        logging.error(f"Fehler bei find_whitelisted_spam ({account['user']}): {e}", exc_info=True)
+        logging.error(f"Fehler bei find_whitelisted_spam ({account['name']}): {e}", exc_info=True)
     
     return found_emails
 
@@ -180,7 +180,7 @@ def restore_emails(account: Dict[str, str], emails: List[Dict]) -> int:
                     print(f"✅ Wiederhergestellt: {email_data['sender']}")
                     print(f"   Betreff: {email_data['subject'][:60]}{'...' if len(email_data['subject']) > 60 else ''}")
                     
-                    logging.info(f"E-Mail wiederhergestellt: {email_data['subject']} von {email_data['sender']} ({account['user']})")
+                    logging.info(f"E-Mail wiederhergestellt: {email_data['subject']} von {email_data['sender']} ({account['name']})")
                     restored_count += 1
                 else:
                     print(f"⚠️  Fehler bei: {email_data['sender']}")
@@ -196,7 +196,7 @@ def restore_emails(account: Dict[str, str], emails: List[Dict]) -> int:
         
     except Exception as e:
         print(f"❌ Fehler: {e}")
-        logging.error(f"Fehler bei restore_emails ({account['user']}): {e}", exc_info=True)
+        logging.error(f"Fehler bei restore_emails ({account['name']}): {e}", exc_info=True)
     
     return restored_count
 
