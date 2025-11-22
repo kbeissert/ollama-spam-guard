@@ -9,13 +9,16 @@ Hilfreich zum Finden des richtigen Spam-Ordner-Namens.
 import imaplib
 import sys
 import os
+from pathlib import Path
 from dotenv import load_dotenv
 
 # .env laden
 load_dotenv()
 
-# Direkt aus config importieren
-from src.config import EMAIL_ACCOUNTS
+# Füge src/ zum Python-Path hinzu
+sys.path.insert(0, str(Path(__file__).parent.parent / 'src'))
+
+from config import EMAIL_ACCOUNTS
 
 
 def decode_folder_name(folder_bytes):

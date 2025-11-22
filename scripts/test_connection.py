@@ -6,9 +6,10 @@ Prüft alle Komponenten ohne E-Mails zu verarbeiten
 
 import sys
 import os
+from pathlib import Path
 
 # Füge src/ zum Python-Path hinzu
-sys.path.insert(0, os.path.join(os.path.dirname(__file__), 'src'))
+sys.path.insert(0, str(Path(__file__).parent.parent / 'src'))
 
 import requests
 import imaplib
