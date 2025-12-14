@@ -2,7 +2,7 @@
 
 🛡️ Automatische E-Mail-Spam-Filterung mit lokalem LLM via Ollama – 100% privat, keine Cloud.
 
-> IMAP-basierter Spam-Filter powered by `qwen2.5:14b-instruct` für intelligente, lokale E-Mail-Klassifizierung.
+> IMAP-basierter Spam-Filter powered by `ministral-3:14b` für intelligente, lokale E-Mail-Klassifizierung.
 
 ## Features
 
@@ -11,9 +11,10 @@
 - ✅ **3-Stufen-Filter**: Whitelist → Blacklist → LLM-Analyse
 - ✅ **Externe Blacklists**: Automatisches Laden von Spamhaus, Blocklist.de etc.
 - ✅ **IMAP-Support**: All-Inkl, Gmail, GMX, Outlook, HostEurope, Berlin.de, etc.
-- ✅ **LLM-basiert**: Nutzt `qwen2.5:14b-instruct` (14B Parameter)
+- ✅ **LLM-basiert**: Nutzt `ministral-3:14b` (14B Parameter) für höchste Präzision
 - ✅ **YAML-Konfiguration**: Übersichtliche Account-Verwaltung
 - ✅ **Flexible Filter**: Nach Anzahl oder Zeitraum (letzte X Tage)
+- ✅ **Benchmark-Tool**: Teste und vergleiche verschiedene LLM-Modelle (inkl. Reasoning-Support)
 - ✅ **Detailliertes Logging**: Vollständige Nachverfolgbarkeit
 
 ## Quick Start
@@ -68,9 +69,8 @@ accounts:
 # Ollama starten
 ollama serve
 
-# Modell installieren (Empfehlung basierend auf Hardware)
-ollama pull qwen2.5:14b-instruct  # Starke Systeme (16GB+ RAM)
-ollama pull qwen2.5:7b            # Mittlere Systeme (8-16GB RAM)
+# Modell installieren (Empfehlung: Ministral 3 14B)
+ollama pull ministral-3:14b
 ```
 
 💡 **Modellauswahl**: Siehe [Modellübersicht in SETUP.md](docs/SETUP.md#modellauswahl) für eine vollständige Übersicht aller verfügbaren Modelle mit Empfehlungen basierend auf deiner Hardware.
@@ -148,6 +148,20 @@ Das Tool durchsucht alle Spam-Ordner, findet E-Mails von Whitelist-Absendern und
 - ✅ Sicher: Nur Whitelist-Absender werden verschoben
 - ✅ Dry-Run-Modus zum Testen
 
+## Benchmark
+
+Teste, welches LLM-Modell am besten für deine E-Mails geeignet ist. Das Benchmark-Tool misst Genauigkeit, Geschwindigkeit und Effizienz.
+
+```bash
+# Interaktiver Benchmark (Modell auswählen)
+make benchmark
+
+# Schneller Test (nur 5 E-Mails)
+make benchmark-quick
+```
+
+👉 **[Ausführliche Benchmark-Dokumentation](docs/BENCHMARK.md)**
+
 ## Konfiguration
 
 ### Script-Einstellungen (`.env`)
@@ -189,7 +203,11 @@ accounts:
 admin@company.com
 
 # Ganze Domains (alle E-Mails von dieser Domain)
+# WICHTIG: Subdomains (z.B. marketing.trusted-domain.com) werden NICHT automatisch erkannt!
+# Dies ist ein Sicherheitsfeature, um Spam von gekaperten Subdomains zu verhindern.
+# Subdomains müssen separat hinzugefügt werden.
 trusted-domain.com
+@trusted-domain.com  # Alternative Schreibweise (wird automatisch erkannt)
 ```
 
 **Blacklist** (`blacklist.txt`) - Bekannte Spam-Absender:

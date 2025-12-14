@@ -48,6 +48,10 @@ wheels/
 logs/
 *.log
 spam_filter.log
+
+# Benchmark Results (nur README behalten)
+benchmark/*
+!benchmark/README.md
 ~/spam_filter.log
 
 # IDE & Editors

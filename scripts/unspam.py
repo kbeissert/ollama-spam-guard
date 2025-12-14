@@ -216,11 +216,42 @@ def main():
         action='store_true',
         help='Nur anzeigen, nichts verschieben'
     )
+    parser.add_argument(
+        'email',
+        nargs='?',
+        help='E-Mail-Adresse zur Whitelist hinzufügen und wiederherstellen'
+    )
     args = parser.parse_args()
     
     print("\n" + "="*60)
     print("♻️  Unspam - E-Mail Wiederherstellung")
     print("="*60)
+    
+    # Wenn E-Mail übergeben wurde, zur Whitelist hinzufügen
+    if args.email:
+        email_to_add = args.email.strip().lower()
+        whitelist_path = Path(__file__).parent.parent / "data" / "lists" / "whitelist.txt"
+        
+        try:
+            # Prüfe ob bereits vorhanden
+            current_content = whitelist_path.read_text(encoding='utf-8') if whitelist_path.exists() else ""
+            if email_to_add in current_content.lower():
+                print(f"ℹ️  {email_to_add} ist bereits auf der Whitelist.")
+            else:
+                print(f"📝 Füge {email_to_add} zur Whitelist hinzu...")
+                with open(whitelist_path, "a", encoding='utf-8') as f:
+                    if not current_content.endswith('\n') and current_content:
+                        f.write('\n')
+                    f.write(f"{email_to_add}\n")
+                print(f"✅ {email_to_add} wurde zur Whitelist hinzugefügt.")
+                
+                # Reload ListManager um die Änderung sofort wirksam zu machen
+                get_list_manager().load_all_lists(force_update=False)
+                
+        except Exception as e:
+            print(f"❌ Fehler beim Schreiben der Whitelist: {e}")
+            return
+
     print(f"   Accounts: {len(EMAIL_ACCOUNTS)}")
     
     if args.dry_run:

@@ -39,7 +39,7 @@ accounts:
 ```bash
 # LLM-Konfiguration
 OLLAMA_URL=http://localhost:11434/api/generate
-SPAM_MODEL=qwen2.5:14b-instruct
+SPAM_MODEL=ministral-3:14b
 
 # Filter-Modus
 FILTER_MODE=count  # "count" oder "days"
@@ -114,7 +114,11 @@ admin@example.com
 newsletter@company.de
 
 # Ganze Domains (alle E-Mails von dieser Domain)
+# WICHTIG: Subdomains (z.B. marketing.trusted-company.com) werden NICHT automatisch erkannt!
+# Dies ist ein Sicherheitsfeature, um Spam von gekaperten Subdomains zu verhindern.
+# Subdomains müssen separat hinzugefügt werden.
 trusted-company.com
+@trusted-company.com  # Alternative Schreibweise (wird automatisch erkannt)
 partner-domain.de
 ```
 

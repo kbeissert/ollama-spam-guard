@@ -495,3 +495,33 @@ cat .env | grep -v PASSWORD
 
 - **Setup & Installation**: [SETUP.md](SETUP.md)
 - **Konfiguration**: [CONFIGURATION.md](CONFIGURATION.md)
+
+---
+
+## Benchmark-Probleme
+
+### ❌ "No module named 'pandas'" (oder andere Module)
+
+**Symptom**:
+Der Benchmark startet nicht und meldet fehlende Python-Module.
+
+**Lösung**:
+Du nutzt wahrscheinlich nicht das virtuelle Environment.
+1.  Führe `make install` aus, um alle Abhängigkeiten zu installieren.
+2.  Starte den Benchmark immer mit `make benchmark` (das nutzt automatisch das richtige Environment).
+
+### ❌ "No models found in Ollama"
+
+**Symptom**:
+Die Liste der Modelle im Benchmark ist leer oder es erscheint eine Warnung.
+
+**Lösung**:
+1.  Stelle sicher, dass Ollama läuft (`ollama serve`).
+2.  Prüfe, ob du Modelle heruntergeladen hast:
+    ```bash
+    ollama list
+    ```
+3.  Falls leer, lade ein Modell:
+    ```bash
+    ollama pull qwen2.5:14b-instruct
+    ```

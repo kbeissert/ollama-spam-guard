@@ -278,7 +278,16 @@ class ListManager:
                     continue
                 
                 # Prüfe ob E-Mail oder Domain
-                if '@' in entry:
+                if entry.startswith('@'):
+                    # Domain mit @ angegeben (z.B. @amazon.com) -> als Domain behandeln
+                    domain = entry[1:].strip()
+                    if domain:
+                        if ' ' in domain:
+                            print(f"⚠️  Whitelist Zeile {line_num}: Domain darf keine Leerzeichen enthalten: {domain}")
+                            invalid_count += 1
+                            continue
+                        self.whitelist_domains.add(domain.lower())
+                elif '@' in entry:
                     # E-Mail Adresse
                     if entry.count('@') != 1:
                         print(f"⚠️  Whitelist Zeile {line_num}: Ungültige E-Mail (mehrere @): {entry}")
@@ -287,7 +296,7 @@ class ListManager:
                         continue
                     self.whitelist_emails.add(entry.lower())
                 else:
-                    # Domain
+                    # Domain (ohne @)
                     if ' ' in entry:
                         print(f"⚠️  Whitelist Zeile {line_num}: Domain darf keine Leerzeichen enthalten: {entry}")
                         logging.warning(f"Whitelist Zeile {line_num}: Ungültige Domain: {entry}")

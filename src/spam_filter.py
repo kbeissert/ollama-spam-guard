@@ -190,39 +190,62 @@ def detect_spam(sender: str, subject: str, body: str) -> Tuple[bool, str]:
     # STUFE 3: LLM-basierte Spam-Erkennung
     # ============================================
     
-    prompt = f"""Analysiere diese E-Mail auf Spam-Indikatoren.
-
-Von: {sender}
-Betreff: {subject}
-Inhalt: {body[:500]}
-
-Antworte nur mit "SPAM" oder "HAM".
-"""
+    # Prompt-Design aus Benchmark übernommen (optimiert für Ministral/Qwen)
+    prompt = (
+        f"Klassifiziere diese E-Mail als SPAM oder HAM. "
+        f"Antworte NUR mit 'SPAM' oder 'HAM' und einer kurzen Begründung (max 15 Wörter).\n\n"
+        f"Von: {sender}\n"
+        f"Betreff: {subject}\n"
+        f"Inhalt: {body[:1000]}"  # Mehr Kontext als vorher (500 -> 1000)
+    )
+    
+    # Konfiguration analog zum Benchmark
+    # Standardmäßig kein "Thinking" für maximale Geschwindigkeit im Produktivbetrieb
+    use_thinking = False 
+    num_predict = 2000 if use_thinking else 150
+    timeout = 120  # Erhöht von 30s auf 120s für Stabilität
+    
+    payload = {
+        "model": SPAM_MODEL,
+        "prompt": prompt,
+        "stream": False,
+        "options": {
+            "temperature": 0.1,
+            "num_predict": num_predict
+        }
+    }
+    
+    # Ministral-Optimierung: Lightweight System-Prompt
+    # Reduziert Input-Tokens von ~600 auf ~50 und steigert Effizienz
+    if "ministral" in SPAM_MODEL.lower():
+        payload["system"] = (
+            f"You are an intelligent Spam Detection System. "
+            f"Analyze the email content and metadata critically. "
+            f"Legitimate emails (HAM) can come from unknown senders. "
+            f"Only mark as SPAM if there are clear indicators like phishing, scams, unsolicited offers, or malicious content. "
+            f"The current date is {datetime.now().strftime('%Y-%m-%d')}."
+        )
+        
+    # Deaktiviere Thinking explizit, falls nicht gewünscht
+    if not use_thinking:
+        payload["think"] = False
     
     try:
-        response = requests.post(
-            OLLAMA_URL,
-            json={
-                'model': SPAM_MODEL,
-                'prompt': prompt,
-                'stream': False,
-                'options': {
-                    'temperature': 0.1,  # Deterministisch
-                    'num_predict': 50    # Kurze Antwort
-                }
-            },
-            timeout=30
-        )
+        response = requests.post(OLLAMA_URL, json=payload, timeout=timeout)
         response.raise_for_status()
         
         # Parse Ollama JSON-Response
         result_json = response.json()
-        result_text = result_json["response"].strip().upper()
+        result_text = result_json.get("response", "").strip()
         
         # Bestimme Spam-Status
-        is_spam = "SPAM" in result_text[:20]  # Erste 20 Zeichen prüfen
+        # Suche nach "SPAM" im gesamten Antworttext, da Benchmark-Prompt Begründung enthält
+        is_spam = "SPAM" in result_text.upper()
         
-        return is_spam, result_text
+        # Bereinige den Text für das Log (entferne Newlines)
+        clean_reason = result_text.replace("\n", " ").strip()
+        
+        return is_spam, clean_reason
         
     except requests.Timeout:
         logging.warning("LLM-Request timeout, behandle als HAM")
@@ -259,7 +282,15 @@ def decode_header_safe(header_value: str) -> str:
         
         for part, encoding in decoded_parts:
             if isinstance(part, bytes):
-                decoded_str += part.decode(encoding or 'utf-8', errors='ignore')
+                # Fix für "unknown-8bit" Encoding Fehler
+                if encoding == 'unknown-8bit':
+                    encoding = 'utf-8'
+                
+                try:
+                    decoded_str += part.decode(encoding or 'utf-8', errors='ignore')
+                except LookupError:
+                    # Fallback für andere unbekannte Encodings
+                    decoded_str += part.decode('utf-8', errors='ignore')
             else:
                 decoded_str += str(part)
         
@@ -428,29 +459,6 @@ def process_inbox(account: Dict[str, str]) -> Dict[str, any]:
             mail.logout()
             print("✅ IMAP-Verbindung geschlossen")
             
-            # Zeige Spam-Absender Übersicht
-            if stats.get('spam_senders'):
-                print("\n" + "="*60)
-                print(f"🚫 SPAM-ABSENDER ÜBERSICHT ({len(stats['spam_senders'])} E-Mails verschoben)")
-                print("="*60)
-                
-                # Gruppiere nach E-Mail-Adresse
-                senders_grouped = defaultdict(list)
-                for spam_mail in stats['spam_senders']:
-                    senders_grouped[spam_mail['email']].append(spam_mail['subject'])
-                
-                for sender_email, subjects in sorted(senders_grouped.items()):
-                    print(f"\n📧 {sender_email} ({len(subjects)} E-Mail(s))")
-                    for subject in subjects[:3]:  # Zeige max 3 Betreffs
-                        print(f"   • {subject[:70]}{'...' if len(subject) > 70 else ''}")
-                    if len(subjects) > 3:
-                        print(f"   ... und {len(subjects) - 3} weitere")
-                
-                print("\n" + "="*60)
-                print("💡 TIPP: Falls eine E-Mail-Adresse fälschlich blockiert wurde:")
-                print("   1. Füge sie zur Whitelist hinzu: data/lists/whitelist.txt")
-                print("   2. Stelle E-Mails wieder her: make unspam")
-                print("="*60 + "\n")
         except Exception as e:
             logging.error(f"Logout fehlgeschlagen: {e}", exc_info=True)
 
@@ -537,7 +545,7 @@ def main():
             return
         
         # Gesamtstatistik
-        total_stats = {'spam': 0, 'ham': 0, 'accounts_processed': 0, 'accounts_failed': 0}
+        total_stats = {'spam': 0, 'ham': 0, 'accounts_processed': 0, 'accounts_failed': 0, 'spam_senders': []}
         
         # Verarbeite alle Accounts
         for idx, account in enumerate(EMAIL_ACCOUNTS, 1):
@@ -557,6 +565,8 @@ def main():
             total_stats['spam'] += stats['spam']
             total_stats['ham'] += stats['ham']
             total_stats['accounts_processed'] += 1
+            if stats.get('spam_senders'):
+                total_stats['spam_senders'].extend(stats['spam_senders'])
             
             # Account-Statistik
             account_total = stats['spam'] + stats['ham']
@@ -582,6 +592,30 @@ def main():
             spam_rate = (total_stats['spam'] / total) * 100
             print(f"   📈 Gesamt-Spam-Rate: {spam_rate:.1f}%")
         
+        # Zeige Spam-Absender Übersicht (Global)
+        if total_stats.get('spam_senders'):
+            print("\n" + "="*60)
+            print(f"🚫 SPAM-ABSENDER ÜBERSICHT ({len(total_stats['spam_senders'])} E-Mails verschoben)")
+            print("="*60)
+            
+            # Gruppiere nach E-Mail-Adresse
+            senders_grouped = defaultdict(list)
+            for spam_mail in total_stats['spam_senders']:
+                senders_grouped[spam_mail['email']].append(spam_mail['subject'])
+            
+            for sender_email, subjects in sorted(senders_grouped.items()):
+                print(f"\n📧 {sender_email} ({len(subjects)} E-Mail(s))")
+                for subject in subjects[:3]:  # Zeige max 3 Betreffs
+                    print(f"   • {subject[:70]}{'...' if len(subject) > 70 else ''}")
+                if len(subjects) > 3:
+                    print(f"   ... und {len(subjects) - 3} weitere")
+            
+            print("\n" + "="*60)
+            print("💡 TIPP: Falls eine E-Mail-Adresse fälschlich blockiert wurde:")
+            print("   1. Füge sie zur Whitelist hinzu: data/lists/whitelist.txt")
+            print("   2. Stelle E-Mails wieder her: make unspam")
+            print("="*60)
+
         print(f"\n   📄 Details: {log_path}")
         print("="*60 + "\n")
         

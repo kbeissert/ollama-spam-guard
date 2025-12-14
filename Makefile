@@ -11,7 +11,13 @@
 
 .PHONY: help test run folders install clean unspam unspam-auto unspam-dry \
         whitelist-show whitelist-add whitelist-remove \
-        blacklist-show blacklist-add blacklist-remove
+        blacklist-show blacklist-add blacklist-remove \
+        benchmark benchmark-quick
+
+# Virtual Environment Settings
+VENV = .venv
+PYTHON = $(VENV)/bin/python
+PIP = $(VENV)/bin/pip
 
 # Standard-Target (wird bei 'make' ohne Parameter aufgerufen)
 help:
@@ -22,7 +28,12 @@ help:
 	@echo "  make test       - Verbindungstest (Ollama, LLM, IMAP)"
 	@echo "  make run        - Spam-Filter starten"
 	@echo "  make unspam     - Whitelist-E-Mails aus Spam wiederherstellen"
+	@echo "  make unspam <email> - E-Mail zur Whitelist hinzufügen & wiederherstellen"
 	@echo "  make folders    - IMAP-Ordnerstruktur anzeigen"
+	@echo ""
+	@echo "  Benchmark:"
+	@echo "  make benchmark       - Benchmark starten (interaktiv)"
+	@echo "  make benchmark-quick - Benchmark Quick-Mode (5 Mails)"
 	@echo ""
 	@echo "  Listen verwalten:"
 	@echo "  make whitelist-show              - Whitelist anzeigen"
@@ -39,42 +50,60 @@ help:
 # Verbindungstest ausführen
 test:
 	@echo "🔍 Starte Verbindungstest..."
-	@python scripts/test_connection.py
+	@$(PYTHON) scripts/test_connection.py
 
 # Spam-Filter starten
 run:
 	@echo "🛡️  Starte Spam-Filter..."
-	@python src/spam_filter.py
+	@$(PYTHON) src/spam_filter.py
 
 # E-Mails von Whitelist-Absendern aus Spam-Ordner wiederherstellen
+# Unterstützt Argumente: make unspam email@example.com
 unspam:
 	@echo "♻️  Starte Unspam..."
-	@python scripts/unspam.py
+	@$(PYTHON) scripts/unspam.py $(filter-out $@,$(MAKECMDGOALS))
+
+# Catch-all für Argumente (verhindert "No rule to make target" Fehler)
+%:
+	@:
+
+# Benchmark starten
+benchmark:
+	@echo "📊 Starte Benchmark..."
+	@$(PYTHON) scripts/benchmark/start_benchmark.py
+
+# Benchmark Quick-Mode
+benchmark-quick:
+	@echo "📊 Starte Benchmark (Quick Mode)..."
+	@$(PYTHON) scripts/benchmark/start_benchmark.py --quick
+
 
 # E-Mails wiederherstellen (automatisch, ohne Nachfrage)
 unspam-auto:
 	@echo "♻️  Starte Unspam (automatisch)..."
-	@python scripts/unspam.py --auto
+	@$(PYTHON) scripts/unspam.py --auto
 
 # E-Mails nur anzeigen (Dry-Run)
 unspam-dry:
 	@echo "♻️  Starte Unspam (Dry-Run)..."
-	@python scripts/unspam.py --dry-run
+	@$(PYTHON) scripts/unspam.py --dry-run
 
 # IMAP-Ordnerstruktur anzeigen
 folders:
 	@echo "📁 Zeige IMAP-Ordnerstruktur..."
-	@python scripts/list_folders.py
+	@$(PYTHON) scripts/list_folders.py
 
 # Alle Ordner anzeigen (inkl. System-Ordner)
 folders-all:
 	@echo "📁 Zeige ALLE IMAP-Ordner..."
-	@python scripts/list_folders.py --all
+	@$(PYTHON) scripts/list_folders.py --all
 
 # Dependencies installieren
 install:
+	@echo "📦 Erstelle Virtual Environment (.venv)..."
+	@python3 -m venv $(VENV)
 	@echo "📦 Installiere Python-Dependencies..."
-	@pip install -r requirements.txt
+	@$(PIP) install -r requirements.txt
 	@echo "✅ Installation abgeschlossen!"
 
 # Cache-Dateien löschen
@@ -92,7 +121,7 @@ clean:
 
 # Whitelist anzeigen
 whitelist-show:
-	@python scripts/manage_lists.py whitelist show
+	@$(PYTHON) scripts/manage_lists.py whitelist show
 
 # Zur Whitelist hinzufügen
 # Usage: make whitelist-add ENTRY=email@example.com
@@ -102,7 +131,7 @@ ifndef ENTRY
 	@echo "Usage: make whitelist-add ENTRY=email@example.com"
 	@exit 1
 endif
-	@python scripts/manage_lists.py whitelist add "$(ENTRY)"
+	@$(PYTHON) scripts/manage_lists.py whitelist add "$(ENTRY)"
 
 # Von Whitelist entfernen
 # Usage: make whitelist-remove ENTRY=email@example.com
@@ -112,11 +141,11 @@ ifndef ENTRY
 	@echo "Usage: make whitelist-remove ENTRY=email@example.com"
 	@exit 1
 endif
-	@python scripts/manage_lists.py whitelist remove "$(ENTRY)"
+	@$(PYTHON) scripts/manage_lists.py whitelist remove "$(ENTRY)"
 
 # Blacklist anzeigen
 blacklist-show:
-	@python scripts/manage_lists.py blacklist show
+	@$(PYTHON) scripts/manage_lists.py blacklist show
 
 # Zur Blacklist hinzufügen
 # Usage: make blacklist-add ENTRY=spam@example.com
@@ -126,7 +155,7 @@ ifndef ENTRY
 	@echo "Usage: make blacklist-add ENTRY=spam@example.com"
 	@exit 1
 endif
-	@python scripts/manage_lists.py blacklist add "$(ENTRY)"
+	@$(PYTHON) scripts/manage_lists.py blacklist add "$(ENTRY)"
 
 # Von Blacklist entfernen
 # Usage: make blacklist-remove ENTRY=spam@example.com
@@ -136,17 +165,17 @@ ifndef ENTRY
 	@echo "Usage: make blacklist-remove ENTRY=spam@example.com"
 	@exit 1
 endif
-	@python scripts/manage_lists.py blacklist remove "$(ENTRY)"
+	@$(PYTHON) scripts/manage_lists.py blacklist remove "$(ENTRY)"
 
 # Projekt-Status anzeigen
 status:
 	@echo "📊 Projekt-Status:"
 	@echo ""
-	@echo "Python-Version:"
-	@python --version
+	@echo "Python-Version (in .venv):"
+	@$(PYTHON) --version
 	@echo ""
 	@echo "Installierte Pakete:"
-	@pip list | grep -E "python-dotenv|requests|tqdm|pyyaml" || echo "  Keine gefunden - führe 'make install' aus"
+	@$(PIP) list | grep -E "python-dotenv|requests|tqdm|pyyaml|pandas" || echo "  Keine gefunden - führe 'make install' aus"
 	@echo ""
 	@echo "Git-Status:"
 	@git status -s || echo "  Kein Git-Repository"

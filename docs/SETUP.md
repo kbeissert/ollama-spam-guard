@@ -33,26 +33,17 @@ Oder ZIP herunterladen und entpacken.
 
 ### 2. Python-Dependencies installieren
 
+Wir verwenden ein **virtuelles Environment** (`.venv`), um Konflikte mit anderen Projekten zu vermeiden. Das `Makefile` übernimmt die Einrichtung automatisch.
+
 ```bash
-pip install -r requirements.txt
+make install
 ```
 
-**Installierte Pakete**:
-- `python-dotenv` - Lädt .env Dateien
-- `requests` - HTTP-Requests an Ollama
-- `tqdm` - Progress-Bar
-- `pyyaml` - YAML-Parser für accounts.yaml
+Dieser Befehl:
+1.  Erstellt einen Ordner `.venv` im Projektverzeichnis.
+2.  Installiert alle benötigten Pakete (`pandas`, `requests`, `tqdm`, etc.) in dieses Environment.
 
-**Bei Problemen**:
-```bash
-# Mit virtuellem Environment
-python -m venv venv
-source venv/bin/activate  # macOS/Linux
-# oder
-venv\Scripts\activate     # Windows
-
-pip install -r requirements.txt
-```
+**Hinweis**: Du musst das Environment nicht manuell aktivieren. Alle `make`-Befehle (z.B. `make run`, `make benchmark`) nutzen automatisch das korrekte Python aus `.venv`.
 
 ---
 
@@ -126,19 +117,15 @@ Die Wahl des richtigen Modells hängt von deiner Hardware und deinen Anforderung
 ### Für starke Systeme (16GB+ RAM)
 | Modell | Größe | Geschwindigkeit | Genauigkeit | Besonderheiten |
 |--------|-------|-----------------|-------------|----------------|
-| **qwen2.5:14b-instruct** | ~9GB | ⚡ Mittel | ⭐⭐⭐⭐⭐ Exzellent | **✅ Top-Wahl für deutsche Business-E-Mails** |
-| deepseek-r1:14b | ~9GB | ⚡ Mittel | ⭐⭐⭐⭐ Sehr gut | Starkes Reasoning, Sprachbeschränkungen |
-| deepseek-r1:32b | ~20GB | 🐌 Langsam | ⭐⭐⭐⭐⭐ Exzellent | Für High-End-Systeme |
+| **ministral-3:14b** | ~9GB | ⚡ Mittel | ⭐⭐⭐⭐⭐ Exzellent | **🏆 Aktueller Benchmark-Sieger** |
+| qwen2.5:14b-instruct | ~9GB | ⚡ Mittel | ⭐⭐⭐⭐ Sehr gut | Solide Alternative |
 
-**💡 Empfehlung für deutsche E-Mails**: Die **Qwen2.5-Modelle** sind die erste Wahl, da sie explizit für über 29 Sprachen (inkl. Deutsch) trainiert wurden. DeepSeek-R1 ist primär für Englisch/Chinesisch optimiert und kann bei deutschen Texten zu Sprachvermischungen neigen.
+**💡 Empfehlung**: **Ministral 3 14B** hat sich in unseren Benchmarks als das leistungsfähigste Modell erwiesen, insbesondere bei schwierigen Spam-Fällen. Es bietet die beste Balance aus Präzision und Geschwindigkeit.
 
 **Modell installieren**:
 ```bash
-# Beispiel: Mittleres System
-ollama pull qwen2.5:7b
-
-# Beispiel: Starkes System
-ollama pull qwen2.5:14b-instruct
+# Empfohlenes Modell
+ollama pull ministral-3:14b
 ```
 
 --- 4. Konfigurationsdateien erstellen
@@ -151,7 +138,7 @@ cp .env.example .env
 **Bearbeite `.env`**:
 ```bash
 # LLM-Modell (das du mit ollama pull geladen hast)
-SPAM_MODEL=qwen2.5:14b-instruct
+SPAM_MODEL=ministral-3:14b
 
 # Filter-Modus
 FILTER_MODE=count  # Oder "days" für zeitbasiert

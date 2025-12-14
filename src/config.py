@@ -74,7 +74,7 @@ EMAIL_ACCOUNTS = load_accounts_from_yaml(ACCOUNTS_FILE)
 
 # Ollama-Settings
 OLLAMA_URL = os.getenv('OLLAMA_URL', 'http://localhost:11434/api/generate')
-SPAM_MODEL = os.getenv('SPAM_MODEL', 'qwen2.5:14b-instruct')
+SPAM_MODEL = os.getenv('SPAM_MODEL', 'ministral-3:14b')
 
 # Filter-Settings
 FILTER_MODE = os.getenv('FILTER_MODE', 'count')  # 'count' oder 'days'
